@@ -5,8 +5,6 @@
 .env
 *.out
 *.iml
-*.pb.go
-*.pb.gw.go
 *.log
 *.tmp
 /migrations/*.sql
