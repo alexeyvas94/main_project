@@ -1,0 +1,20 @@
+name: Go Linting
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18'
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.51.0/golangci-lint-1.51.0-linux-amd64.tar.gz | tar -xz
+          sudo mv golangci-lint-*/golangci-lint /usr/local/bin/
+      - name: Run golangci-lint
+        run: golangci-lint run
