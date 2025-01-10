@@ -1,11 +1,10 @@
 module github.com/alexeyvas94/main_project
 
-go 1.23
+go 1.23.2
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/gojuno/minimock/v3 v3.4.3
-	github.com/gomodule/redigo v1.9.2
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.69.2
