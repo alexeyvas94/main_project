@@ -29,7 +29,8 @@ func TestDelete(t *testing.T) {
 		req              = &pb.DeleteRequest{Id: id}
 		expectedResponse = &emptypb.Empty{}
 	)
-	defer mc.Finish()
+	t.Cleanup(func() {
+	})
 	tests := []struct {
 		name           string
 		args           args

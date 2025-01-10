@@ -28,7 +28,8 @@ func TestDelete(t *testing.T) {
 
 		serviceErr = fmt.Errorf("repo error")
 	)
-	defer t.Cleanup(mc.Finish)
+	t.Cleanup(func() {
+	})
 
 	tests := []struct {
 		name        string

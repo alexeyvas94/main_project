@@ -88,12 +88,12 @@ func (r *postgresCarRepository) Update(ctx context.Context, req *pb.UpdateReques
 
 	result, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
-		fmt.Errorf("failed to update car: %v", err)
+		return fmt.Errorf("failed to update car: %v", err)
 	}
 
 	// Проверка на количество изменённых строк
 	if result.RowsAffected() == 0 {
-		fmt.Errorf("no car found with id: %d", req.Id)
+		return fmt.Errorf("no car found with id: %d", req.Id)
 	}
 	return nil
 }
@@ -102,7 +102,7 @@ func (r *postgresCarRepository) Delete(ctx context.Context, id int64) error {
 
 	_, err := r.db.Exec(ctx, "DELETE FROM cars WHERE id = $1", id)
 	if err != nil {
-		fmt.Errorf("failed to delete cars: %v", err)
+		return fmt.Errorf("failed to delete cars: %v", err)
 	}
 	return nil
 }

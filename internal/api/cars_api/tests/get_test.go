@@ -51,7 +51,9 @@ func TestGet(t *testing.T) {
 		expectedResponse = &pb.GetResponse{User: converter.ToProto(&car)}
 	)
 
-	defer mc.Finish() // Cleanup для завершения минимок-контроллера
+	t.Cleanup(func() {
+	})
+	// Cleanup для завершения минимок-контроллера
 
 	tests := []struct {
 		name           string

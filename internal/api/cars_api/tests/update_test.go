@@ -46,7 +46,8 @@ func TestUpdate(t *testing.T) {
 		}
 		res = &emptypb.Empty{}
 	)
-	defer t.Cleanup(mc.Finish)
+	t.Cleanup(func() {
+	})
 
 	tests := []struct {
 		name           string

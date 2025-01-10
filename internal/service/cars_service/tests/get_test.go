@@ -44,7 +44,8 @@ func TestGet(t *testing.T) {
 		}
 	)
 
-	defer t.Cleanup(mc.Finish)
+	t.Cleanup(func() {
+	})
 
 	tests := []struct {
 		name        string

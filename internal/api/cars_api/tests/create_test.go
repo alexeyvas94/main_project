@@ -46,7 +46,8 @@ func TestCreate(t *testing.T) {
 			Id: id,
 		}
 	)
-	defer t.Cleanup(mc.Finish)
+	t.Cleanup(func() {
+	})
 
 	tests := []struct {
 		name           string
