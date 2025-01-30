@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+/bin/
+/go.sum
+.env
+*.out
+*.iml
+*.log
+*.tmp
+/migrations/*.sql
+*.exe
+*.dll
+*.so
+*.dylib
+*.cov
