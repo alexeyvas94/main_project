@@ -3,19 +3,24 @@ package tests
 import (
 	"context"
 	"fmt"
+	"github.com/alexeyvas94/main_project/internal/cache"
+	cacheMocks "github.com/alexeyvas94/main_project/internal/cache/mocks"
+	"github.com/alexeyvas94/main_project/internal/models"
 	"github.com/alexeyvas94/main_project/internal/repository"
-	serviceMocks "github.com/alexeyvas94/main_project/internal/repository/mocks"
+	repoMocks "github.com/alexeyvas94/main_project/internal/repository/mocks"
 	"github.com/alexeyvas94/main_project/internal/service/cars_service"
 	pb "github.com/alexeyvas94/main_project/pkg/car"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
-	type carServiceMockFunc func(mc *minimock.Controller) repository.CarRepository
+	type carRepoMockFunc func(mc *minimock.Controller) repository.CarRepository
+	type carCacheMockFunc func(mc *minimock.Controller) cache.Cache
 
 	type args struct {
 		ctx context.Context
@@ -42,15 +47,18 @@ func TestCreate(t *testing.T) {
 			Role:  role,
 		}
 	)
+
 	t.Cleanup(func() {
+		mc.Finish() // Завершение контроллера моков
 	})
 
 	tests := []struct {
-		name        string
-		args        args
-		want        int64
-		err         error
-		carRepoMock carServiceMockFunc
+		name         string
+		args         args
+		want         int64
+		err          error
+		carRepoMock  carRepoMockFunc
+		carCacheMock carCacheMockFunc
 	}{
 		{
 			name: "success case",
@@ -61,8 +69,22 @@ func TestCreate(t *testing.T) {
 			want: id,
 			err:  nil,
 			carRepoMock: func(mc *minimock.Controller) repository.CarRepository {
-				mock := serviceMocks.NewCarRepositoryMock(mc)
+				mock := repoMocks.NewCarRepositoryMock(mc)
 				mock.CreateMock.Expect(ctx, req).Return(id, nil)
+				return mock
+			},
+			carCacheMock: func(mc *minimock.Controller) cache.Cache {
+				mock := cacheMocks.NewCacheMock(mc)
+				mock.SetCarInCacheMock.Expect(&models.Car{
+					ID:        id,
+					Marka:     req.Marka,
+					Model:     req.Model,
+					VIN:       req.VIN,
+					Year:      req.Year,
+					Role:      req.Role.String(), // Убедитесь, что Role преобразован в строку
+					CreatedAt: time.Now().UTC(),  // Устанавливаем текущую метку времени
+					UpdatedAt: time.Now().UTC(),  // Устанавливаем текущую метку времени
+				}).Return(nil)
 				return mock
 			},
 		},
@@ -75,9 +97,27 @@ func TestCreate(t *testing.T) {
 			want: 0,
 			err:  serviceErr,
 			carRepoMock: func(mc *minimock.Controller) repository.CarRepository {
-				mock := serviceMocks.NewCarRepositoryMock(mc)
+				mock := repoMocks.NewCarRepositoryMock(mc)
 				mock.CreateMock.Expect(ctx, req).Return(0, serviceErr)
 				return mock
+			},
+			carCacheMock: func(mc *minimock.Controller) cache.Cache {
+				return cacheMocks.NewCacheMock(mc)
+			},
+		},
+		{
+			name: "validation error case",
+			args: args{
+				ctx: ctx,
+				req: &pb.CreateRequest{}, // Пустой запрос
+			},
+			want: 0,
+			err:  fmt.Errorf("marka is required"),
+			carRepoMock: func(mc *minimock.Controller) repository.CarRepository {
+				return repoMocks.NewCarRepositoryMock(mc)
+			},
+			carCacheMock: func(mc *minimock.Controller) cache.Cache {
+				return cacheMocks.NewCacheMock(mc)
 			},
 		},
 	}
@@ -87,8 +127,9 @@ func TestCreate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			carServiceMock := tt.carRepoMock(mc)
-			carService := cars_service.NewCarService(carServiceMock)
+			carRepoMock := tt.carRepoMock(mc)
+			carCacheMock := tt.carCacheMock(mc)
+			carService := cars_service.NewCarService(carRepoMock, carCacheMock)
 
 			newID, err := carService.CreateCar(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"github.com/alexeyvas94/main_project/internal/cache"
 	"github.com/alexeyvas94/main_project/internal/repository"
 	serviceMocks "github.com/alexeyvas94/main_project/internal/repository/mocks"
 	"github.com/alexeyvas94/main_project/internal/service/cars_service"
@@ -17,6 +18,7 @@ import (
 func TestUpdate(t *testing.T) {
 	t.Parallel()
 	type carServiceMockFunc func(mc *minimock.Controller) repository.CarRepository
+	type carCacheMockFunc func(mc *minimock.Controller) cache.Cache
 
 	type args struct {
 		ctx context.Context
@@ -49,10 +51,11 @@ func TestUpdate(t *testing.T) {
 	})
 
 	tests := []struct {
-		name        string
-		args        args
-		err         error
-		carRepoMock carServiceMockFunc
+		name         string
+		args         args
+		err          error
+		carRepoMock  carServiceMockFunc
+		carCacheMock carCacheMockFunc
 	}{
 		{
 			name: "success case",
@@ -103,7 +106,8 @@ func TestUpdate(t *testing.T) {
 			t.Parallel()
 
 			carRepoMock := tt.carRepoMock(mc)
-			carService := cars_service.NewCarService(carRepoMock)
+			carCacheMock := tt.carCacheMock(mc)
+			carService := cars_service.NewCarService(carRepoMock, carCacheMock)
 
 			err := carService.UpdateCar(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

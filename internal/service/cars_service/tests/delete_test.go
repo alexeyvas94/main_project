@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"github.com/alexeyvas94/main_project/internal/cache"
 	"github.com/alexeyvas94/main_project/internal/repository"
 	serviceMocks "github.com/alexeyvas94/main_project/internal/repository/mocks"
 	"github.com/alexeyvas94/main_project/internal/service/cars_service"
@@ -15,6 +16,7 @@ import (
 func TestDelete(t *testing.T) {
 	t.Parallel()
 	type carServiceMockFunc func(mc *minimock.Controller) repository.CarRepository
+	type carCacheMockFunc func(mc *minimock.Controller) cache.Cache
 
 	type args struct {
 		ctx context.Context
@@ -32,10 +34,11 @@ func TestDelete(t *testing.T) {
 	})
 
 	tests := []struct {
-		name        string
-		args        args
-		err         error
-		carRepoMock carServiceMockFunc
+		name         string
+		args         args
+		err          error
+		carRepoMock  carServiceMockFunc
+		carCacheMock carCacheMockFunc
 	}{
 		{
 			name: "success case",
@@ -70,8 +73,9 @@ func TestDelete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			carServiceMock := tt.carRepoMock(mc)
-			carService := cars_service.NewCarService(carServiceMock)
+			carRepoMock := tt.carRepoMock(mc)
+			carCacheMock := tt.carCacheMock(mc)
+			carService := cars_service.NewCarService(carRepoMock, carCacheMock)
 			err := carService.DeleteCar(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 		})
